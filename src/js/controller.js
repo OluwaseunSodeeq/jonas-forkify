@@ -1,18 +1,12 @@
 import * as model from "./model.js";
 import recipeView from "./views/recipeView.js";
+import searchView from "./views/searchView.js";
 
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import recipeView from "./views/recipeView.js";
 
 const recipeContainer = document.querySelector(".recipe");
-const timeout = function (s) {
-  return new Promise(function (_, reject) {
-    setTimeout(function () {
-      reject(new Error(`Requst too long! Timeout after ${s} second`));
-    }, s * 1000);
-  });
-};
 
 const controlRecipe = async function () {
   try {
@@ -33,13 +27,33 @@ const controlRecipe = async function () {
 
     //===============Generating the Markup
   } catch (err) {
+    // console.log(err);
+    recipeView.renderError();
+  }
+};
+
+const controlSearchResult = async function () {
+  try {
+    //1. Get search query
+    const query = searchView.getQuery();
+    if (!query) return;
+
+    //2. passing or loading the query into the search function
+    await model.loadSearchResults(query);
+
+    //3. Rendering the query
+    // console.log(model.state.search.results);
+  } catch (err) {
     console.log(err);
   }
 };
-["hashchange", "load"].forEach((ev) =>
-  window.addEventListener(ev, controlRecipe)
-);
-
+// controlSearchResult();
+const init = function () {
+  //subcriber
+  recipeView.addHandlerRender(controlRecipe);
+  searchView.addHandlerSearch(controlSearchResult);
+};
+init();
 /*
 //========STATE ONE===================
 
