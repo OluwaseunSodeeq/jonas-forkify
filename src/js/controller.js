@@ -1,12 +1,18 @@
 import * as model from "./model.js";
 import recipeView from "./views/recipeView.js";
 import searchView from "./views/searchView.js";
+import resultsView from "./views/resultView.js";
+import paginationView from "./views/paginationView.js";
 
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import recipeView from "./views/recipeView.js";
+import { async } from "regenerator-runtime";
+// const recipeContainer = document.querySelector(".recipe");
 
-const recipeContainer = document.querySelector(".recipe");
+//It used to prevent the page from reloading,it is not js code actually
+// if (module.hot) {
+//   module.hot.accept();
+// }
 
 const controlRecipe = async function () {
   try {
@@ -34,6 +40,8 @@ const controlRecipe = async function () {
 
 const controlSearchResult = async function () {
   try {
+    resultsView.renderSpinner();
+
     //1. Get search query
     const query = searchView.getQuery();
     if (!query) return;
@@ -41,17 +49,26 @@ const controlSearchResult = async function () {
     //2. passing or loading the query into the search function
     await model.loadSearchResults(query);
 
-    //3. Rendering the query
+    //3. Rendering the result
+    // resultsView.render(model.state.search.results);
+    resultsView.render(model.getSearchResultsPage(3));
     // console.log(model.state.search.results);
+    paginationView.render(model.state.search);
+    //rrnderPagination
   } catch (err) {
     console.log(err);
   }
 };
 // controlSearchResult();
+const controlPagination = function () {
+  console.log("control Pagination");
+};
+
 const init = function () {
   //subcriber
   recipeView.addHandlerRender(controlRecipe);
   searchView.addHandlerSearch(controlSearchResult);
+  paginationView.addHandlerClick(controlPagination);
 };
 init();
 /*
