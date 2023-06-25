@@ -2,12 +2,14 @@ import * as model from "./model.js";
 import recipeView from "./views/recipeView.js";
 import searchView from "./views/searchView.js";
 import resultsView from "./views/resultView.js";
+import bookMarkView from "./views/bookMarkView.js";
 import paginationView from "./views/paginationView.js";
+import addRecipeView from "./views/addRecipeView.js";
+import { MODAL_CLOSE_SEC } from "./configuration.js";
 
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import { async } from "regenerator-runtime";
-// const recipeContainer = document.querySelector(".recipe");
 
 //It used to prevent the page from reloading,it is not js code actually
 // if (module.hot) {
@@ -22,28 +24,32 @@ const controlRecipe = async function () {
     //===============Renderinng theSpinner
     recipeView.renderSpinner();
 
+    //update the result
+    resultsView.update(model.getSearchResultsPage());
+    bookMarkView.update(model.state.bookMarks);
     //===============Loading the Recipe
     await model.loadRecipe(id);
     // const { recipe } = model.state;
 
     //===============Renderinng the Recipe
-
     recipeView.render(model.state.recipe);
     // const recipeView = new recipeView(model.state.recipe);
+    // console.log(model.state.recipe);
 
     //===============Generating the Markup
   } catch (err) {
-    // console.log(err);
+    console.error(err);
     recipeView.renderError();
   }
 };
-
 const controlSearchResult = async function () {
   try {
     resultsView.renderSpinner();
 
     //1. Get search query
+
     const query = searchView.getQuery();
+    // if (query === "") return;
     if (!query) return;
 
     //2. passing or loading the query into the search function
@@ -51,24 +57,83 @@ const controlSearchResult = async function () {
 
     //3. Rendering the result
     // resultsView.render(model.state.search.results);
-    resultsView.render(model.getSearchResultsPage(3));
+    resultsView.render(model.getSearchResultsPage());
     // console.log(model.state.search.results);
+
+    //renderPagination
     paginationView.render(model.state.search);
-    //rrnderPagination
   } catch (err) {
     console.log(err);
   }
 };
 // controlSearchResult();
-const controlPagination = function () {
-  console.log("control Pagination");
+const controlPagination = function (goto) {
+  //3. Rendering new the result
+  resultsView.render(model.getSearchResultsPage(goto));
+
+  //3. Rendering new Pagination
+  paginationView.render(model.state.search);
+};
+
+const controlSevings = function (newServings) {
+  //update thr recipe servings in state
+  model.updateServings(newServings);
+
+  //rendering the recipe
+  // recipeView.render(model.state.recipe);
+  recipeView.update(model.state.recipe);
+};
+
+const controlAddBookMark = function () {
+  //add?remove BookMark
+  if (!model.state.recipe.bookmarked) model.addBookMark(model.state.recipe);
+  else model.removeBookMark(model.state.recipe.id);
+  console.log(model.state.recipe);
+
+  //update recipe View
+  recipeView.update(model.state.recipe);
+
+  //render Bookmark
+  bookMarkView.render(model.state.bookMarks);
+};
+
+const controlBookMarks = function () {
+  bookMarkView.render(model.state.bookMarks);
+};
+
+const controlAddrecipe = async function (newRecipe) {
+  try {
+    //render spainer
+    addRecipeView.renderSpinner();
+    //upload the new recipe data
+
+    await model.uploadRecipe(newRecipe);
+    console.log(model.state.recipe);
+
+    //render recipe view data
+    recipeView.render(model.state.recipe);
+    //success Msg
+    addRecipeView.renderSuccessMsg();
+
+    //close form
+    setTimeout(function () {
+      addRecipeView.toggle();
+    }, MODAL_CLOSE_SEC * 1000);
+  } catch (err) {
+    console.error("🤞", err);
+    addRecipeView.renderError(err.message);
+  }
 };
 
 const init = function () {
   //subcriber
+  bookMarkView.addHandlerRender(controlBookMarks);
   recipeView.addHandlerRender(controlRecipe);
+  recipeView.addHandlerUpdateServings(controlSevings);
+  recipeView.addHandlerAddBookmark(controlAddBookMark);
   searchView.addHandlerSearch(controlSearchResult);
   paginationView.addHandlerClick(controlPagination);
+  addRecipeView.addHandlerUpload(controlAddrecipe);
 };
 init();
 /*
