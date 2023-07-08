@@ -1,6 +1,7 @@
 import { async } from "regenerator-runtime";
 import { API_URL, KEY, PER_PAGE } from "./configuration";
-import { getJson, sendJson } from "./helper";
+import { AJAx } from "./helper";
+// import { getJson, sendJson } from "./helper";
 
 export const state = {
   recipe: {},
@@ -31,7 +32,7 @@ const createRecipeObject = function (data) {
 
 export const loadRecipe = async function (id) {
   try {
-    const data = await getJson(`${API_URL}${id}`);
+    const data = await AJAx(`${API_URL}${id}?key=${KEY}`);
     state.recipe = createRecipeObject(data);
 
     //to retain the property bookmarked
@@ -51,7 +52,7 @@ export const loadSearchResults = async function (query) {
   try {
     state.search.query = query;
     // https://forkify-api.herokuapp.com/api/v2/recipes?search=pizza
-    const data = await getJson(`${API_URL}?search=${query}`);
+    const data = await AJAx(`${API_URL}?search=${query}&key=${KEY}`);
 
     // console.log(data);
     state.search.results = data.data.recipes.map((rec) => {
@@ -60,6 +61,7 @@ export const loadSearchResults = async function (query) {
         title: rec.title,
         publisher: rec.publisher,
         image: rec.image_url,
+        ...(rec.key && { key: rec.key }),
       };
     });
     state.search.page = 1;
@@ -124,7 +126,8 @@ export const uploadRecipe = async function (newRecipe) {
     const ingredients = Object.entries(newRecipe)
       .filter((entry) => entry[0].startsWith("ingredient") && entry[1] !== "")
       .map((ing) => {
-        const ingArr = ing[1].replaceAll(" ", "").split(",");
+        const ingArr = ing[1].split(",").map((each) => each.trim());
+        // const ingArr = ing[1].replaceAll(" ", "").split(",");
         if (ingArr.length !== 3)
           throw new Error(
             " Wrong ingredient format! Please use the correct format "
@@ -145,7 +148,7 @@ export const uploadRecipe = async function (newRecipe) {
     };
     console.log(recipe);
     // const data = await sendJson(`${API_URL}?key=${KEY}`, recipe);
-    const data = await sendJson(`${API_URL}?key=${KEY}`, recipe);
+    const data = await AJAx(`${API_URL}?key=${KEY}`, recipe);
     // https://forkify-api.herokuapp.com/api/v2/recipes?search=pizza&key=<insert your key>
     state.recipe = createRecipeObject(data);
     addBookMark(state.recipe);

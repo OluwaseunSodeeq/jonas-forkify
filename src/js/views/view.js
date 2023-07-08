@@ -2,6 +2,15 @@ import icon from "url:../../../src/img/icons.svg";
 export default class View {
   //Public Api
   _data;
+  //check jsdoc.app for this
+  /**
+   *
+   * @param {Object | Object[]} data The data to be rendered(e.g rcipe)
+   * @param {boolean} [render = false]  if true,create Markup staring instaed of rendering to the dom
+   * @returns {undefined | string} A mark up staring is returned if render false
+   * @this {Object} View instance
+   * @author Oluwaseun Sodeeq 2023 with Jonas
+   */
 
   render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0))

@@ -42,6 +42,7 @@ const controlRecipe = async function () {
     recipeView.renderError();
   }
 };
+
 const controlSearchResult = async function () {
   try {
     resultsView.renderSpinner();
@@ -66,6 +67,7 @@ const controlSearchResult = async function () {
     console.log(err);
   }
 };
+
 // controlSearchResult();
 const controlPagination = function (goto) {
   //3. Rendering new the result
@@ -103,7 +105,7 @@ const controlBookMarks = function () {
 
 const controlAddrecipe = async function (newRecipe) {
   try {
-    //render spainer
+    //render spinner
     addRecipeView.renderSpinner();
     //upload the new recipe data
 
@@ -114,6 +116,15 @@ const controlAddrecipe = async function (newRecipe) {
     recipeView.render(model.state.recipe);
     //success Msg
     addRecipeView.renderSuccessMsg();
+
+    //RenderBooMark view
+    bookMarkView.render(model.state.bookMarks);
+
+    //change history
+    window.history.pushState(null, "", `#${model.state.recipe.id}`);
+
+    // going forth and back
+    // window.history.back()
 
     //close form
     setTimeout(function () {
